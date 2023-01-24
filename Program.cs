@@ -4,7 +4,22 @@ class Program
 {
     static void Main()
     {
+        Stack stack = new Stack();
+        stack.Add("!");
+        stack.Add("Mир");
+        stack.Add("Привет");
 
+        Console.WriteLine(stack);
+
+        Stack stack1 = Stack.Concat( stack, new Stack("!", "!"));
+
+        Console.WriteLine(stack1);
+
+        Console.WriteLine(stack1.Pop());
+
+        stack1.Merge( new Stack(":)", ":)"));
+
+        Console.WriteLine(stack1);
     }
 }
 
@@ -85,5 +100,12 @@ public class Stack
         }
 
         return result;
+    }
+
+    public override string ToString()
+    {
+        
+        return string.Join(" ",list);
+        
     }
 }
