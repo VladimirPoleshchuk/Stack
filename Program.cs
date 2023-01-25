@@ -1,111 +1,154 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-class Program
+﻿namespace Stack
 {
-    static void Main()
+    class Program
     {
-        Stack stack = new Stack();
-        stack.Add("!");
-        stack.Add("Mир");
-        stack.Add("Привет");
-
-        Console.WriteLine(stack);
-
-        Stack stack1 = Stack.Concat( stack, new Stack("!", "!"));
-
-        Console.WriteLine(stack1);
-
-        Console.WriteLine(stack1.Pop());
-
-        stack1.Merge( new Stack(":)", ":)"));
-
-        Console.WriteLine(stack1);
-    }
-}
-
-public static class StackExtensions
-{
-    public static void Merge(this Stack stack1, Stack stack2)
-    {
-        for (int i = 0; i < stack2.Size; i++)
+        static void Main()
         {
-            stack1.Add(stack2.Top);
+            Stack stack = new Stack(" ");
+            stack.Add("!");
+            stack.Add("Mир");
+            stack.Add("Привет");
+
+            Console.WriteLine(stack.Size);
+            Console.WriteLine(stack.Top);
+            stack.Pop();
+            stack.Pop();
+            Console.WriteLine(stack.Size);
+            Console.WriteLine(stack.Top is null ? "null" : stack.Top);
+            Console.WriteLine(stack.Size);
+
+            Stack stack1 = Stack.Concat(stack, new Stack("Я", " ", "Здесь"));
+            Console.WriteLine(stack1.Size);
+            Console.WriteLine(stack1.Top);
+
+            stack1.Merge(new Stack("Учусь вместе с вами."));
+            Console.WriteLine(stack1.Size);
+            Console.WriteLine(stack1.Top);
+
+            Console.WriteLine(stack1);
+
         }
     }
-}
 
-public class Stack
-{
-    private List<string> list = new List<string>();
-
-    public int Size
+    public static class StackExtensions
     {
-        get { return list.Count; }
-    }
-
-    public string Top
-    {
-        get
+        public static void Merge(this Stack stack1, Stack stack2)
         {
-            if (Size == 0)
+            for (int i = 0; i < stack2.Size; i++)
             {
-                return null;
-            }
-            else
-            {
-                return list[list.Count - 1];
+                stack1.Add(stack2.Top);
             }
         }
     }
 
-    public Stack(params string[] lines)
+    public class Stack
     {
-        for (int i = 0; i < lines.Length; i++)
+        private StackItem stackItemHead = null;
+
+        public int Size { get; private set; }
+
+        public string Top
         {
-            list.Add(lines[i]);
-        }
-    }
-
-    public void Add(string line)
-    {
-        list.Add(line);
-    }
-
-    public string Pop()
-    {
-        string line = "";
-        try
-        {
-            line = list.Last();
-            list.RemoveAt(list.Count - 1);
-        }
-        catch (Exception)
-        {
-            throw new Exception("Стек пуст");
-        }
-
-        return line;
-    }
-
-    static public Stack Concat(params Stack[] stack)
-    {
-        Stack result = new();
-
-        foreach (Stack line in stack)
-        {
-            for (int i = line.Size - 1; i >= 0; i--)
+            get
             {
-                result.Add(line.list[i]);
+                if (Size == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    return stackItemHead.Item;
+                }
             }
         }
 
-        return result;
-    }
+        public Stack(params string[] lines)
+        {
+            for (int i = 0; i < lines.Length; i++)
+            {
+                StackItem stackItem = new();
+                stackItem.PreviousItem = stackItemHead;
+                stackItem.Item = lines[i];
+                stackItemHead = stackItem;
+                Size++;
+            }
+        }
 
-    public override string ToString()
-    {
-        
-        return string.Join(" ",list);
-        
+        public void Add(string line)
+        {
+            StackItem stackItem = new();
+            stackItem.PreviousItem = stackItemHead;
+            stackItem.Item = line;
+            stackItemHead = stackItem;
+            Size++;
+        }
+
+        public string Pop()
+        {
+            string line = "";
+
+            try
+            {
+                line = stackItemHead.Item;
+
+                stackItemHead.Item = stackItemHead.PreviousItem is null ? null : stackItemHead.PreviousItem.Item;
+                stackItemHead.PreviousItem = stackItemHead.PreviousItem is null ? null : stackItemHead.PreviousItem.PreviousItem;
+
+                Size--;
+
+                if (Size < 0)
+                {
+                    Size = 0;
+                    throw new Exception();
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception("Стек пуст");
+            }
+
+            return line;
+        }
+
+        static public Stack Concat(params Stack[] stacks)
+        {
+            Stack result = new();
+
+            foreach (Stack stack in stacks)
+            {
+                StackItem lineNext = stack.stackItemHead;
+
+                while (lineNext != null)
+                {
+                    result.Add(lineNext.Item);
+
+                    lineNext = lineNext.PreviousItem;
+                }
+            }
+
+            return result;
+        }
+
+        public override string ToString()
+        {
+            string line = "";
+
+            StackItem lineNext = stackItemHead;
+
+            while (lineNext != null)
+            {
+                line += lineNext.Item;
+
+                lineNext = lineNext.PreviousItem;
+            }
+
+            return line;
+        }
+
+        private class StackItem
+        {
+            public string Item { get; set; }
+            public StackItem PreviousItem { get; set; }
+        }
     }
 }
